@@ -3,10 +3,7 @@ import pandas as pd
 import yfinance as yf
 import plotly.graph_objs as go
 from datetime import datetime, timedelta
-from newsapi import NewsApiClient
-
-# Define the News API client
-newsapi = NewsApiClient(api_key='30f892ddb31d43709e5a7a77833f824a')
+import requests
 
 # Define the layout using Streamlit components
 st.title('Stonks20.com')
@@ -80,13 +77,17 @@ if submit_button:
     except Exception as e:
         st.error(f'Error: {str(e)}')
 
-# Display news articles
-news_articles = newsapi.get_everything(q=stock_symbol, language='en', sort_by='publishedAt')['articles']
-if news_articles:
-    st.subheader('News')
-    for article in news_articles:
-        st.markdown(f"## {article['title']}")
-        st.markdown(article['description'])
-        st.markdown(f"[Read More]({article['url']})")
+# Fetch news articles from GNews API
+response = requests.get(f"https://gnews.io/api/v4/search?q={stock_symbol}&token=09fdb169f86cad27b874f8a4872bd913")
+if response.status_code == 200:
+    news_articles = response.json()['articles']
+    if news_articles:
+        st.subheader('News')
+        for article in news_articles:
+            st.markdown(f"## {article['title']}")
+            st.markdown(article['description'])
+            st.markdown(f"[Read More]({article['url']})")
+    else:
+        st.warning('No news articles found for the given stock symbol.')
 else:
-    st.warning('No news articles found for the given stock symbol.')
+    st.error('Failed to fetch news articles. Please check your API key and try again.')
