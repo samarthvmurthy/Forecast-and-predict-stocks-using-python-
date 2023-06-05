@@ -10,34 +10,30 @@ correct_username = "admin"
 correct_password = "password"
 
 # Define the layout using Streamlit components
-page = st.sidebar.radio("Navigation", ["Home", "Stock Analysis", "News"])
+st.title("Stonks20.com - Login")
+# Add username and password input fields
+username = st.text_input("Username")
+password = st.text_input("Password", type="password")
+submit_button = st.button("Login")
 
 # Check if the user is logged in
-if st.session_state.get("logged_in"):
-    if st.button("Logout"):
-        st.session_state["logged_in"] = False
-else:
-    st.title("Stonks20.com - Login")
-    # Add username and password input fields
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-
-    if st.button("Login"):
-        if username == correct_username and password == correct_password:
-            st.session_state["logged_in"] = True
-            st.success("Login successful!")
-            st.info("You can now access other pages.")
-        else:
-            st.error("Invalid username or password. Please try again.")
+if submit_button:
+    if username == correct_username and password == correct_password:
+        st.success("Login successful!")
+        st.info("You can now access other pages.")
+        st.session_state["logged_in"] = True
+    else:
+        st.error("Invalid username or password. Please try again.")
 
 if st.session_state.get("logged_in"):
+    st.title("Stonks20.com")
+    page = st.sidebar.radio("Navigation", ["Home", "Stock Analysis", "News"])
+
     if page == "Home":
-        st.title("Stonks20.com")
         image_url = "https://example.com/your_image.jpg"  # Replace with your image URL
         st.image(image_url, use_column_width=True)
 
     elif page == "Stock Analysis":
-        st.title("Stonks20.com")
         stock_symbol = st.text_input("Enter the stock symbol:", "AAPL")
         date_range = st.date_input(
             "Select the dates:",
@@ -133,7 +129,6 @@ if st.session_state.get("logged_in"):
                 st.error(f"Error: {str(e)}")
 
     elif page == "News":
-        st.title("News")
         stock_symbol = st.text_input("Enter the stock symbol:", "AAPL")
         response = requests.get(
             f"https://gnews.io/api/v4/search?q={stock_symbol}&token=09fdb169f86cad27b874f8a4872bd913"
@@ -149,5 +144,3 @@ if st.session_state.get("logged_in"):
                 st.warning("No news articles found for the given stock symbol.")
         else:
             st.error("Failed to fetch news articles. Please check your API key and try again.")
-else:
-    st.warning("You need to log in to access this page.")
