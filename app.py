@@ -1,5 +1,5 @@
 import streamlit as st
-import pandas as pd
+import pandas_datareader as pdr
 import yfinance as yf
 import plotly.graph_objs as go
 from datetime import datetime, timedelta
@@ -152,14 +152,11 @@ if st.session_state.get("logged_in"):
 
         if submit_button:
             try:
-                search_results = yf.search(company_name)
+                search_results = pdr.get_yahoo_symbol(company_name)
                 if search_results:
-                    ticker = search_results[0].symbol
+                    ticker = search_results.iloc[0]["symbol"]
                     st.success(f"Ticker symbol for {company_name}: {ticker}")
                 else:
                     st.warning("No matching companies found.")
             except Exception as e:
                 st.error(f"Error: {str(e)}")
-else:
-    image_url = "https://i.ytimg.com/vi/if-2M3K1tqk/maxresdefault.jpg"  # Replace with your image URL
-    st.image(image_url, use_column_width=True)
