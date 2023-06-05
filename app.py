@@ -32,7 +32,7 @@ if st.sidebar.button("Logout"):
     st.sidebar.success("Logged out successfully!")
 
 if st.session_state.get("logged_in"):
-    page = st.sidebar.radio("Navigation", ["Stock Analysis", "News"])
+    page = st.sidebar.radio("Navigation", ["Stock Analysis", "News", "Stocks"])
 
     if page == "Stock Analysis":
         stock_symbol = st.text_input("Enter the stock symbol:", "AAPL")
@@ -145,6 +145,21 @@ if st.session_state.get("logged_in"):
                 st.warning("No news articles found for the given stock symbol.")
         else:
             st.error("Failed to fetch news articles. Please check your API key and try again.")
+
+    elif page == "Stocks":
+        company_name = st.text_input("Enter the company name:")
+        submit_button = st.button("Submit")
+
+        if submit_button:
+            try:
+                search_results = yf.search(company_name)
+                if search_results:
+                    ticker = search_results[0].symbol
+                    st.success(f"Ticker symbol for {company_name}: {ticker}")
+                else:
+                    st.warning("No matching companies found.")
+            except Exception as e:
+                st.error(f"Error: {str(e)}")
 else:
     image_url = "https://i.ytimg.com/vi/if-2M3K1tqk/maxresdefault.jpg"  # Replace with your image URL
     st.image(image_url, use_column_width=True)
