@@ -9,7 +9,7 @@ import requests
 page = st.sidebar.radio("Navigation", ["Home", "Stock Analysis"])
 if page == "Home":
     st.title("Stonks20.com")
-    image_url = "https://example.com/your_image.jpg"  # Replace with your image URL
+    image_url = "https://www.kotaksecurities.com/uploads/104_933x280_a7ab2e67f0.jpg"  # Replace with your image URL
     st.image(image_url, use_column_width=True)
     
     # Fetch news articles from GNews API
