@@ -17,7 +17,7 @@ if st.session_state.get("logged_in"):
     if st.button("Logout"):
         st.session_state["logged_in"] = False
 else:
-    st.title("Stonks20.com")
+    st.title("Stonks20.com - Login")
     # Add username and password input fields
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
@@ -33,7 +33,7 @@ else:
 if st.session_state.get("logged_in"):
     if page == "Home":
         st.title("Stonks20.com")
-        image_url = "https://www.kotaksecurities.com/uploads/104_933x280_a7ab2e67f0.jpg"  # Replace with your image URL
+        image_url = "https://example.com/your_image.jpg"  # Replace with your image URL
         st.image(image_url, use_column_width=True)
 
     elif page == "Stock Analysis":
