@@ -12,26 +12,31 @@ correct_password = "password"
 # Define the layout using Streamlit components
 page = st.sidebar.radio("Navigation", ["Home", "Stock Analysis", "News"])
 
-if page == "Home":
+# Check if the user is logged in
+if st.session_state.get("logged_in"):
+    if st.button("Logout"):
+        st.session_state["logged_in"] = False
+else:
     st.title("Stonks20.com")
-    image_url = "https://www.kotaksecurities.com/uploads/104_933x280_a7ab2e67f0.jpg"  # Replace with your image URL
-    st.image(image_url, use_column_width=True)
-
     # Add username and password input fields
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
 
     if st.button("Login"):
         if username == correct_username and password == correct_password:
+            st.session_state["logged_in"] = True
             st.success("Login successful!")
             st.info("You can now access other pages.")
-
         else:
             st.error("Invalid username or password. Please try again.")
 
-elif page == "Stock Analysis":
-    # Check if the user is logged in
-    if st.session_state.get("logged_in"):
+if st.session_state.get("logged_in"):
+    if page == "Home":
+        st.title("Stonks20.com")
+        image_url = "https://www.kotaksecurities.com/uploads/104_933x280_a7ab2e67f0.jpg"  # Replace with your image URL
+        st.image(image_url, use_column_width=True)
+
+    elif page == "Stock Analysis":
         st.title("Stonks20.com")
         stock_symbol = st.text_input("Enter the stock symbol:", "AAPL")
         date_range = st.date_input(
@@ -126,12 +131,8 @@ elif page == "Stock Analysis":
 
             except Exception as e:
                 st.error(f"Error: {str(e)}")
-        else:
-            st.warning("You need to log in to access this page.")
 
-elif page == "News":
-    # Check if the user is logged in
-    if st.session_state.get("logged_in"):
+    elif page == "News":
         st.title("News")
         stock_symbol = st.text_input("Enter the stock symbol:", "AAPL")
         response = requests.get(
@@ -148,11 +149,5 @@ elif page == "News":
                 st.warning("No news articles found for the given stock symbol.")
         else:
             st.error("Failed to fetch news articles. Please check your API key and try again.")
-    else:
-        st.warning("You need to log in to access this page.")
-
-# Check if the user has entered the correct username and password
-if username == correct_username and password == correct_password:
-    st.session_state["logged_in"] = True
 else:
-    st.session_state["logged_in"] = False
+    st.warning("You need to log in to access this page.")
