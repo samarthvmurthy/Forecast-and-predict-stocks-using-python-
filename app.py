@@ -10,30 +10,31 @@ correct_username = "admin"
 correct_password = "password"
 
 # Define the layout using Streamlit components
-st.title("Stonks20.com - Login")
+st.title("Stonks20.com")
+st.sidebar.text("")  # Add some spacing
+
 # Add username and password input fields
-username = st.text_input("Username")
-password = st.text_input("Password", type="password")
-submit_button = st.button("Login")
+username = st.sidebar.text_input("Username")
+password = st.sidebar.text_input("Password", type="password")
 
 # Check if the user is logged in
-if submit_button:
+if st.sidebar.button("Login"):
     if username == correct_username and password == correct_password:
-        st.success("Login successful!")
-        st.info("You can now access other pages.")
+        st.sidebar.success("Login successful!")
+        st.sidebar.info("You can now access other pages.")
         st.session_state["logged_in"] = True
     else:
-        st.error("Invalid username or password. Please try again.")
+        st.sidebar.error("Invalid username or password. Please try again.")
+
+# Add a logout button to the top right corner
+if st.sidebar.button("Logout"):
+    st.session_state.pop("logged_in")
+    st.sidebar.success("Logged out successfully!")
 
 if st.session_state.get("logged_in"):
-    st.title("Stonks20.com")
-    page = st.sidebar.radio("Navigation", ["Home", "Stock Analysis", "News"])
+    page = st.sidebar.radio("Navigation", ["Stock Analysis", "News"])
 
-    if page == "Home":
-        image_url = "https://example.com/your_image.jpg"  # Replace with your image URL
-        st.image(image_url, use_column_width=True)
-
-    elif page == "Stock Analysis":
+    if page == "Stock Analysis":
         stock_symbol = st.text_input("Enter the stock symbol:", "AAPL")
         date_range = st.date_input(
             "Select the dates:",
