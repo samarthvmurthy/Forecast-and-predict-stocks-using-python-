@@ -11,6 +11,24 @@ if page == "Home":
     st.title("Stonks20.com")
     image_url = "https://example.com/your_image.jpg"  # Replace with your image URL
     st.image(image_url, use_column_width=True)
+    
+    # Fetch news articles from GNews API
+    stock_symbol = st.text_input("Enter the stock symbol:", "AAPL")
+    response = requests.get(
+        f"https://gnews.io/api/v4/search?q={stock_symbol}&token=09fdb169f86cad27b874f8a4872bd913"
+    )
+    if response.status_code == 200:
+        news_articles = response.json()["articles"]
+        if news_articles:
+            st.subheader("News")
+            for article in news_articles:
+                st.markdown(f"## {article['title']}")
+                st.markdown(article["description"])
+                st.markdown(f"[Read More]({article['url']})")
+        else:
+            st.warning("No news articles found for the given stock symbol.")
+    else:
+        st.error("Failed to fetch news articles. Please check your API key and try again.")
 else:
     st.title("Stonks20.com")
     stock_symbol = st.text_input("Enter the stock symbol:", "AAPL")
@@ -106,20 +124,3 @@ else:
 
         except Exception as e:
             st.error(f"Error: {str(e)}")
-
-        # Fetch news articles from GNews API
-        response = requests.get(
-            f"https://gnews.io/api/v4/search?q={stock_symbol}&token=09fdb169f86cad27b874f8a4872bd913"
-        )
-        if response.status_code == 200:
-            news_articles = response.json()["articles"]
-            if news_articles:
-                st.subheader("News")
-                for article in news_articles:
-                    st.markdown(f"## {article['title']}")
-                    st.markdown(article["description"])
-                    st.markdown(f"[Read More]({article['url']})")
-            else:
-                st.warning("No news articles found for the given stock symbol.")
-        else:
-            st.error("Failed to fetch news articles. Please check your API key and try again.")
