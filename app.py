@@ -146,5 +146,5 @@ if st.session_state.get("logged_in"):
         else:
             st.error("Failed to fetch news articles. Please check your API key and try again.")
 else:
-    image_url = "https://example.com/your_image.jpg"  # Replace with your image URL
+    image_url = "https://i.ytimg.com/vi/if-2M3K1tqk/maxresdefault.jpg"  # Replace with your image URL
     st.image(image_url, use_column_width=True)
