@@ -145,3 +145,6 @@ if st.session_state.get("logged_in"):
                 st.warning("No news articles found for the given stock symbol.")
         else:
             st.error("Failed to fetch news articles. Please check your API key and try again.")
+else:
+    image_url = "https://example.com/your_image.jpg"  # Replace with your image URL
+    st.image(image_url, use_column_width=True)
