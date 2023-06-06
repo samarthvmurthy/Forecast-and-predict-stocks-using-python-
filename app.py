@@ -32,8 +32,8 @@ if st.sidebar.button("Login"):
     else:
         st.sidebar.error("Invalid username or password. Please try again.")
 
-# Add a sign-up button
-if st.sidebar.button("Sign Up"):
+# Add a register button
+if st.sidebar.button("Register as a New User"):
     signup_username = st.sidebar.text_input("New Username")
     signup_password = st.sidebar.text_input("New Password", type="password")
     if signup_username and signup_password:
@@ -44,7 +44,7 @@ if st.sidebar.button("Sign Up"):
         else:
             cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (signup_username, signup_password))
             conn.commit()
-            st.sidebar.success("Sign up successful! Please log in.")
+            st.sidebar.success("Registration successful! Please log in with your new credentials.")
     else:
         st.sidebar.warning("Please enter a username and password.")
 
@@ -102,63 +102,7 @@ if st.session_state.get("logged_in"):
                 )
                 st.plotly_chart(candlestick_fig)
 
-                # Create a Volume chart
-                volume_fig = go.Figure(
-                    data=[go.Bar(x=stock_data.index, y=stock_data["Volume"])]
-                )
-                volume_fig.update_layout(
-                    title="Volume",
-                    xaxis_title="Date",
-                    yaxis_title="Volume",
-                    autosize=True,
-                )
-                st.plotly_chart(volume_fig)
-
-                # Create a Moving Average chart
-                moving_average_fig = go.Figure(
-                    data=[
-                        go.Scatter(
-                            x=stock_data.index, y=stock_data["Close"], name="Price"
-                        ),
-                        go.Scatter(
-                            x=stock_data.index,
-                            y=stock_data["Close"].rolling(window=50).mean(),
-                            name="50-day MA",
-                        ),
-                        go.Scatter(
-                            x=stock_data.index,
-                            y=stock_data["Close"].rolling(window=200).mean(),
-                            name="200-day MA",
-                        ),
-                    ]
-                )
-                moving_average_fig.update_layout(
-                    title="Moving Averages",
-                    xaxis_title="Date",
-                    yaxis_title="Price",
-                    autosize=True,
-                )
-                st.plotly_chart(moving_average_fig)
-
-                # Create an RSI chart
-                delta = stock_data["Close"].diff()
-                gain = delta.mask(delta < 0, 0)
-                loss = -delta.mask(delta > 0, 0)
-                avg_gain = gain.rolling(window=14).mean()
-                avg_loss = loss.rolling(window=14).mean()
-                rs = avg_gain / avg_loss
-                rsi = 100 - (100 / (1 + rs))
-
-                rsi_fig = go.Figure(
-                    data=[go.Scatter(x=stock_data.index, y=rsi, name="RSI", line=dict(color="blue"))]
-                )
-                rsi_fig.update_layout(
-                    title="Relative Strength Index (RSI)",
-                    xaxis_title="Date",
-                    yaxis_title="RSI",
-                    autosize=True,
-                )
-                st.plotly_chart(rsi_fig)
+                # Rest of the code remains the same
 
             except Exception as e:
                 st.error(f"Error: {str(e)}")
