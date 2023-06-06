@@ -4,5 +4,4 @@ yfinance
 plotly
 datetime
 requests
-pandas_datareader
 csv
