@@ -37,14 +37,16 @@ if st.sidebar.button("Register as a New User"):
     signup_username = st.sidebar.text_input("New Username")
     signup_password = st.sidebar.text_input("New Password", type="password")
     if signup_username and signup_password:
-        cursor.execute("SELECT * FROM users WHERE username=?", (signup_username,))
-        result = cursor.fetchone()
-        if result:
-            st.sidebar.error("Username already exists. Please choose a different username.")
-        else:
-            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (signup_username, signup_password))
-            conn.commit()
-            st.sidebar.success("Registration successful! Please log in with your new credentials.")
+        register_button = st.sidebar.button("Register")
+        if register_button:
+            cursor.execute("SELECT * FROM users WHERE username=?", (signup_username,))
+            result = cursor.fetchone()
+            if result:
+                st.sidebar.error("Username already exists. Please choose a different username.")
+            else:
+                cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (signup_username, signup_password))
+                conn.commit()
+                st.sidebar.success("Registration successful! Please log in with your new credentials.")
     else:
         st.sidebar.warning("Please enter a username and password.")
 
@@ -126,3 +128,7 @@ if st.session_state.get("logged_in"):
 else:
     image_url = "https://i.ytimg.com/vi/if-2M3K1tqk/maxresdefault.jpg"  # Replace with your image URL
     st.image(image_url, use_column_width=True)
+
+# Close the database connection
+cursor.close()
+conn.close()
