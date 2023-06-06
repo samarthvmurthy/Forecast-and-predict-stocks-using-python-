@@ -1,14 +1,17 @@
 import streamlit as st
-import pandas as pd
 import yfinance as yf
 import plotly.graph_objs as go
 from datetime import datetime, timedelta
 import requests
-import csv
+import sqlite3
 
-# Define the correct username and password
-correct_username = "admin"
-correct_password = "password"
+# Establish a connection to the SQLite database
+conn = sqlite3.connect('user_credentials.db')
+cursor = conn.cursor()
+
+# Create a table to store user credentials if it doesn't exist
+cursor.execute('''CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT)''')
+conn.commit()
 
 # Define the layout using Streamlit components
 st.title("Stonks20.com")
@@ -20,8 +23,9 @@ password = st.sidebar.text_input("Password", type="password")
 
 # Check if the user is logged in
 if st.sidebar.button("Login"):
-    user_credentials = read_user_credentials()
-    if username in user_credentials and user_credentials[username] == password:
+    cursor.execute("SELECT * FROM users WHERE username=?", (username,))
+    result = cursor.fetchone()
+    if result and result[1] == password:
         st.sidebar.success("Login successful!")
         st.sidebar.info("You can now access other pages.")
         st.session_state["logged_in"] = True
@@ -33,11 +37,13 @@ if st.sidebar.button("Sign Up"):
     signup_username = st.sidebar.text_input("New Username")
     signup_password = st.sidebar.text_input("New Password", type="password")
     if signup_username and signup_password:
-        user_credentials = read_user_credentials()
-        if signup_username in user_credentials:
+        cursor.execute("SELECT * FROM users WHERE username=?", (signup_username,))
+        result = cursor.fetchone()
+        if result:
             st.sidebar.error("Username already exists. Please choose a different username.")
         else:
-            write_user_credentials(signup_username, signup_password)
+            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (signup_username, signup_password))
+            conn.commit()
             st.sidebar.success("Sign up successful! Please log in.")
     else:
         st.sidebar.warning("Please enter a username and password.")
@@ -48,15 +54,16 @@ if st.sidebar.button("Logout"):
     st.sidebar.success("Logged out successfully!")
 
 def write_user_credentials(username, password):
-    with open('user_credentials.csv', 'a', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow([username, password])
+    cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+    conn.commit()
 
 def read_user_credentials():
-    with open('user_credentials.csv', 'r') as file:
-        reader = csv.reader(file)
-        user_credentials = {rows[0]: rows[1] for rows in reader}
-        return user_credentials
+    cursor.execute("SELECT * FROM users")
+    rows = cursor.fetchall()
+    user_credentials = {row[0]: row[1] for row in rows}
+    return user_credentials
+
+# Rest of the code remains the same
 
 if st.session_state.get("logged_in"):
     page = st.sidebar.radio("Navigation", ["Stock Analysis", "News"])
