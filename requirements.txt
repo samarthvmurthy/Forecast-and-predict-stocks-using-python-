@@ -4,4 +4,4 @@ yfinance
 plotly
 datetime
 requests
-csv
+sqlite3
