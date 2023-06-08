@@ -160,8 +160,11 @@ if st.session_state.get("logged_in"):
 
                 # Perform the prediction using moving average
                 closing_prices = stock_data["Close"]
-                prediction_dates = pd.date_range(end=end_date + timedelta(days=10), periods=10, freq="D")
+                prediction_dates = pd.date_range(end=end_date + timedelta(days=100), periods=100, freq="D")
                 predicted_prices = closing_prices.rolling(window=10).mean().iloc[-1]  # Use 10-day moving average for prediction
+
+                # Extend the predicted prices for 100 days
+                predicted_prices = [predicted_prices] * 100
 
                 # Create a prediction chart
                 prediction_fig = go.Figure()
@@ -169,7 +172,7 @@ if st.session_state.get("logged_in"):
                     go.Scatter(x=closing_prices.index, y=closing_prices, name="Actual Prices")
                 )
                 prediction_fig.add_trace(
-                    go.Scatter(x=prediction_dates, y=[predicted_prices] * 10, name="Predicted Prices")
+                    go.Scatter(x=prediction_dates, y=predicted_prices, name="Predicted Prices")
                 )
                 prediction_fig.update_layout(
                     title=f"{stock_symbol} Stock Price Prediction",
