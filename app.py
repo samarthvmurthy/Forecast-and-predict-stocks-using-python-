@@ -171,7 +171,7 @@ if st.session_state.get("logged_in"):
                     go.Scatter(x=closing_prices.index, y=closing_prices, name="Actual Prices")
                 )
                 prediction_fig.add_trace(
-                    go.Scatter(x=prediction_dates, y=predicted_prices, name="Predicted Prices")
+                    go.Scatter(x=prediction_dates, y=predicted_prices.tolist(), name="Predicted Prices")
                 )
                 prediction_fig.update_layout(
                     title=f"{stock_symbol} Stock Price Prediction",
