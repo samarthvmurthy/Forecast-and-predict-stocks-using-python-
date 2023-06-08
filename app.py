@@ -4,7 +4,6 @@ import yfinance as yf
 import plotly.graph_objs as go
 from datetime import datetime, timedelta
 import requests
-import time
 
 # Define the correct username and password
 correct_username = "admin"
@@ -45,17 +44,9 @@ if st.session_state.get("logged_in"):
 
         # Fetch stock data and update the graphs
         if submit_button:
-            progress_bar = st.progress(0)
-            progress_text = st.empty()
-            progress_start_time = time.time()
-
             try:
                 start_date, end_date = date_range
                 stock_data = yf.download(stock_symbol, start=start_date, end=end_date)
-
-                # Update progress bar
-                progress_bar.progress(50)
-                progress_text.text("Stock data downloaded.")
 
                 # Create a Candlestick chart
                 candlestick_fig = go.Figure(
@@ -75,10 +66,7 @@ if st.session_state.get("logged_in"):
                     yaxis_title="Price",
                     autosize=True,
                 )
-
-                # Update progress bar
-                progress_bar.progress(75)
-                progress_text.text("Candlestick chart created.")
+                st.plotly_chart(candlestick_fig)
 
                 # Create a Volume chart
                 volume_fig = go.Figure(
@@ -90,19 +78,56 @@ if st.session_state.get("logged_in"):
                     yaxis_title="Volume",
                     autosize=True,
                 )
-
-                # Update progress bar
-                progress_bar.progress(100)
-                progress_text.text("Volume chart created.")
-
-                # Display the charts
-                st.plotly_chart(candlestick_fig)
                 st.plotly_chart(volume_fig)
+
+                # Create a Moving Average chart
+                moving_average_fig = go.Figure(
+                    data=[
+                        go.Scatter(
+                            x=stock_data.index, y=stock_data["Close"], name="Price"
+                        ),
+                        go.Scatter(
+                            x=stock_data.index,
+                            y=stock_data["Close"].rolling(window=50).mean(),
+                            name="50-day MA",
+                        ),
+                        go.Scatter(
+                            x=stock_data.index,
+                            y=stock_data["Close"].rolling(window=200).mean(),
+                            name="200-day MA",
+                        ),
+                    ]
+                )
+                moving_average_fig.update_layout(
+                    title="Moving Averages",
+                    xaxis_title="Date",
+                    yaxis_title="Price",
+                    autosize=True,
+                )
+                st.plotly_chart(moving_average_fig)
+
+                # Create an RSI chart
+                delta = stock_data["Close"].diff()
+                gain = delta.mask(delta < 0, 0)
+                loss = -delta.mask(delta > 0, 0)
+                avg_gain = gain.rolling(window=14).mean()
+                avg_loss = loss.rolling(window=14).mean()
+                rs = avg_gain / avg_loss
+                rsi = 100 - (100 / (1 + rs))
+
+                rsi_fig = go.Figure(
+                    data=[go.Scatter(x=stock_data.index, y=rsi, name="RSI", line=dict(color="blue"))]
+                )
+                rsi_fig.update_layout(
+                    title="Relative Strength Index (RSI)",
+                    xaxis_title="Date",
+                    yaxis_title="RSI",
+                    autosize=True,
+                )
+                st.plotly_chart(rsi_fig)
 
             except Exception as e:
                 st.error(f"Error: {str(e)}")
-
-            progress_text.text(f"Time taken: {time.time() - progress_start_time:.2f} seconds")
 
     elif page == "News":
         stock_symbol = st.text_input("Enter the stock symbol:", "AAPL")
@@ -127,10 +152,6 @@ if st.session_state.get("logged_in"):
         submit_button = st.button("Predict")
 
         if submit_button:
-            progress_bar = st.progress(0)
-            progress_text = st.empty()
-            progress_start_time = time.time()
-
             try:
                 # Fetch the historical data
                 end_date = datetime.today().date()
@@ -139,12 +160,19 @@ if st.session_state.get("logged_in"):
 
                 # Perform the prediction using moving average
                 closing_prices = stock_data["Close"]
-                prediction_range = pd.date_range(end=end_date + timedelta(days=100), periods=100, freq="D")
+                prediction_dates = pd.date_range(end=end_date + timedelta(days=100), periods=100, freq="D")
                 predicted_prices = closing_prices.rolling(window=10).mean().iloc[-1]  # Use 10-day moving average for prediction
 
-                # Update progress bar
-                progress_bar.progress(50)
-                progress_text.text("Prediction performed.")
+                # Extend the predicted prices for 100 days
+                predicted_prices = [predicted_prices] * 100
+
+                # Determine if it is a good or bad investment
+                last_actual_price = closing_prices[-1]
+                last_predicted_price = predicted_prices[0]
+                if last_predicted_price > last_actual_price:
+                    investment_status = "Good"
+                else:
+                    investment_status = "Bad"
 
                 # Create a prediction chart
                 prediction_fig = go.Figure()
@@ -152,7 +180,7 @@ if st.session_state.get("logged_in"):
                     go.Scatter(x=closing_prices.index, y=closing_prices, name="Actual Prices")
                 )
                 prediction_fig.add_trace(
-                    go.Scatter(x=prediction_range, y=[predicted_prices] * 100, name="Predicted Prices")
+                    go.Scatter(x=prediction_dates, y=predicted_prices, name="Predicted Prices")
                 )
                 prediction_fig.update_layout(
                     title=f"{stock_symbol} Stock Price Prediction",
@@ -160,15 +188,13 @@ if st.session_state.get("logged_in"):
                     yaxis_title="Price",
                     autosize=True,
                 )
-
-                # Update progress bar
-                progress_bar.progress(100)
-                progress_text.text("Prediction chart created.")
-
-                # Display the prediction chart
                 st.plotly_chart(prediction_fig)
 
-                # Display prediction metrics
+                st.subheader("Investment Status")
+                st.write(f"Based on the prediction, it is expected to be a {investment_status} investment.")
+
+                # Calculate additional metrics
+                prediction_range = pd.date_range(end=end_date, periods=len(predicted_prices), freq="D")
                 predicted_data = pd.DataFrame({"Date": prediction_range, "Predicted Price": predicted_prices})
                 predicted_data.set_index("Date", inplace=True)
 
@@ -183,8 +209,6 @@ if st.session_state.get("logged_in"):
 
             except Exception as e:
                 st.error(f"Error: {str(e)}")
-
-            progress_text.text(f"Time taken: {time.time() - progress_start_time:.2f} seconds")
 
 else:
     image_url = "https://i.ytimg.com/vi/if-2M3K1tqk/maxresdefault.jpg"  # Replace with your image URL
