@@ -193,6 +193,20 @@ if st.session_state.get("logged_in"):
                 st.subheader("Investment Status")
                 st.write(f"Based on the prediction, it is expected to be a {investment_status} investment.")
 
+                # Calculate additional metrics
+                prediction_range = pd.date_range(end=end_date, periods=len(predicted_prices), freq="D")
+                predicted_data = pd.DataFrame({"Date": prediction_range, "Predicted Price": predicted_prices})
+                predicted_data.set_index("Date", inplace=True)
+
+                actual_data = pd.DataFrame({"Date": closing_prices.index, "Actual Price": closing_prices})
+                actual_data.set_index("Date", inplace=True)
+
+                merged_data = predicted_data.join(actual_data, how="inner")
+                merged_data["Price Difference"] = merged_data["Predicted Price"] - merged_data["Actual Price"]
+
+                st.subheader("Prediction Metrics")
+                st.dataframe(merged_data)
+
             except Exception as e:
                 st.error(f"Error: {str(e)}")
 
