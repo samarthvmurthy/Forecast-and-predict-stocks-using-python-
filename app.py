@@ -166,6 +166,14 @@ if st.session_state.get("logged_in"):
                 # Extend the predicted prices for 100 days
                 predicted_prices = [predicted_prices] * 100
 
+                # Determine if it is a good or bad investment
+                last_actual_price = closing_prices[-1]
+                last_predicted_price = predicted_prices[0]
+                if last_predicted_price > last_actual_price:
+                    investment_status = "Good"
+                else:
+                    investment_status = "Bad"
+
                 # Create a prediction chart
                 prediction_fig = go.Figure()
                 prediction_fig.add_trace(
@@ -181,6 +189,9 @@ if st.session_state.get("logged_in"):
                     autosize=True,
                 )
                 st.plotly_chart(prediction_fig)
+
+                st.subheader("Investment Status")
+                st.write(f"Based on the prediction, it is expected to be a {investment_status} investment.")
 
             except Exception as e:
                 st.error(f"Error: {str(e)}")
