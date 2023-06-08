@@ -32,7 +32,7 @@ if st.sidebar.button("Logout"):
     st.sidebar.success("Logged out successfully!")
 
 if st.session_state.get("logged_in"):
-    page = st.sidebar.radio("Navigation", ["Stock Analysis", "News"])
+    page = st.sidebar.radio("Navigation", ["Stock Analysis", "News", "Predict"])
 
     if page == "Stock Analysis":
         stock_symbol = st.text_input("Enter the stock symbol:", "AAPL")
@@ -145,6 +145,45 @@ if st.session_state.get("logged_in"):
                 st.warning("No news articles found for the given stock symbol.")
         else:
             st.error("Failed to fetch news articles. Please check your API key and try again.")
+
+    elif page == "Predict":
+        st.header("Stock Price Prediction")
+        stock_symbol = st.text_input("Enter the stock symbol:", "AAPL")
+        date_range = st.date_input(
+            "Select the dates:",
+            [(datetime.today() - timedelta(days=365)).date(), datetime.today().date()],
+        )
+        submit_button = st.button("Predict")
+
+        if submit_button:
+            try:
+                start_date, end_date = date_range
+                stock_data = yf.download(stock_symbol, start=start_date, end=end_date)
+
+                # Perform the prediction using moving average
+                closing_prices = stock_data["Close"]
+                prediction_dates = pd.date_range(end=end_date, periods=10, freq="D")
+                predicted_prices = closing_prices.rolling(window=10).mean().iloc[-1]  # Use 10-day moving average for prediction
+
+                # Create a prediction chart
+                prediction_fig = go.Figure()
+                prediction_fig.add_trace(
+                    go.Scatter(x=closing_prices.index, y=closing_prices, name="Actual Prices")
+                )
+                prediction_fig.add_trace(
+                    go.Scatter(x=prediction_dates, y=predicted_prices, name="Predicted Prices")
+                )
+                prediction_fig.update_layout(
+                    title=f"{stock_symbol} Stock Price Prediction",
+                    xaxis_title="Date",
+                    yaxis_title="Price",
+                    autosize=True,
+                )
+                st.plotly_chart(prediction_fig)
+
+            except Exception as e:
+                st.error(f"Error: {str(e)}")
+
 else:
     image_url = "https://i.ytimg.com/vi/if-2M3K1tqk/maxresdefault.jpg"  # Replace with your image URL
     st.image(image_url, use_column_width=True)
