@@ -5,13 +5,24 @@ import plotly.graph_objs as go
 from datetime import datetime, timedelta
 import requests
 
-# Define the correct username and password
-correct_username = "admin"
-correct_password = "password"
+# Initialize an empty dictionary to store user details
+user_details = {}
 
 # Define the layout using Streamlit components
 st.title("Stonks20.com")
 st.sidebar.text("")  # Add some spacing
+
+# Add a sign-up button to the sidebar
+if st.sidebar.button("Sign Up"):
+    new_username = st.sidebar.text_input("Username")
+    new_password = st.sidebar.text_input("Password", type="password")
+    if st.sidebar.button("Register"):
+        if new_username and new_password:
+            if new_username in user_details:
+                st.sidebar.error("Username already exists. Please choose a different username.")
+            else:
+                user_details[new_username] = new_password
+                st.sidebar.success("Registration successful! You can now login.")
 
 # Add username and password input fields
 username = st.sidebar.text_input("Username")
@@ -19,22 +30,25 @@ password = st.sidebar.text_input("Password", type="password")
 
 # Check if the user is logged in
 if st.sidebar.button("Login"):
-    if username == correct_username and password == correct_password:
+    if username in user_details and password == user_details[username]:
         st.sidebar.success("Login successful!")
         st.sidebar.info("You can now access other pages.")
         st.session_state["logged_in"] = True
+        st.session_state["username"] = username
     else:
         st.sidebar.error("Invalid username or password. Please try again.")
 
 # Add a logout button to the top right corner
 if st.sidebar.button("Logout"):
     st.session_state.pop("logged_in")
+    st.session_state.pop("username")
     st.sidebar.success("Logged out successfully!")
 
 if st.session_state.get("logged_in"):
     page = st.sidebar.radio("Navigation", ["Stock Analysis", "News", "Predict"])
 
     if page == "Stock Analysis":
+        st.write(f"Welcome, {st.session_state['username']}!")
         stock_symbol = st.text_input("Enter the stock symbol:", "AAPL")
         date_range = st.date_input(
             "Select the dates:",
@@ -130,6 +144,7 @@ if st.session_state.get("logged_in"):
                 st.error(f"Error: {str(e)}")
 
     elif page == "News":
+        st.write(f"Welcome, {st.session_state['username']}!")
         stock_symbol = st.text_input("Enter the stock symbol:", "AAPL")
         response = requests.get(
             f"https://gnews.io/api/v4/search?q={stock_symbol}&token=09fdb169f86cad27b874f8a4872bd913"
@@ -147,6 +162,7 @@ if st.session_state.get("logged_in"):
             st.error("Failed to fetch news articles. Please check your API key and try again.")
 
     elif page == "Predict":
+        st.write(f"Welcome, {st.session_state['username']}!")
         st.header("Stock Price Prediction")
         stock_symbol = st.text_input("Enter the stock symbol:", "AAPL")
         submit_button = st.button("Predict")
@@ -174,42 +190,38 @@ if st.session_state.get("logged_in"):
                 else:
                     investment_status = "Bad"
 
-                # Create a prediction chart
+                # Create a DataFrame for the prediction data
+                prediction_data = pd.DataFrame(
+                    {
+                        "Date": prediction_dates,
+                        "Predicted Price": predicted_prices
+                    }
+                )
+
+                # Plot the predicted prices
                 prediction_fig = go.Figure()
                 prediction_fig.add_trace(
-                    go.Scatter(x=closing_prices.index, y=closing_prices, name="Actual Prices")
+                    go.Scatter(x=closing_prices.index, y=closing_prices, name="Actual Price", line=dict(color="blue"))
                 )
                 prediction_fig.add_trace(
-                    go.Scatter(x=prediction_dates, y=predicted_prices, name="Predicted Prices")
+                    go.Scatter(x=prediction_data["Date"], y=prediction_data["Predicted Price"], name="Predicted Price", line=dict(color="red"))
                 )
                 prediction_fig.update_layout(
-                    title=f"{stock_symbol} Stock Price Prediction",
+                    title="Stock Price Prediction",
                     xaxis_title="Date",
                     yaxis_title="Price",
                     autosize=True,
                 )
                 st.plotly_chart(prediction_fig)
 
+                # Display investment status
                 st.subheader("Investment Status")
-                st.write(f"Based on the prediction, it is expected to be a {investment_status} investment.")
-
-                # Calculate additional metrics
-                prediction_range = pd.date_range(end=end_date, periods=len(predicted_prices), freq="D")
-                predicted_data = pd.DataFrame({"Date": prediction_range, "Predicted Price": predicted_prices})
-                predicted_data.set_index("Date", inplace=True)
-
-                actual_data = pd.DataFrame({"Date": closing_prices.index, "Actual Price": closing_prices})
-                actual_data.set_index("Date", inplace=True)
-
-                merged_data = predicted_data.join(actual_data, how="inner")
-                merged_data["Price Difference"] = merged_data["Predicted Price"] - merged_data["Actual Price"]
-
-                st.subheader("Prediction Metrics")
-                st.dataframe(merged_data)
+                st.write(f"Last Actual Price: {last_actual_price}")
+                st.write(f"Last Predicted Price: {last_predicted_price}")
+                st.write(f"Investment Status: {investment_status}")
 
             except Exception as e:
                 st.error(f"Error: {str(e)}")
 
 else:
-    image_url = "https://i.ytimg.com/vi/if-2M3K1tqk/maxresdefault.jpg"  # Replace with your image URL
-    st.image(image_url, use_column_width=True)
+    st.write("Please login or sign up to access the application.")
